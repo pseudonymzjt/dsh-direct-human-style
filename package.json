@@ -1,0 +1,51 @@
+{
+  "name": "dsh-direct-human-style",
+  "version": "0.1.0",
+  "description": "Always-on prose contract for DeepSeek Harness: one system-prompt section that strips GPT and DeepSeek filler from every reply, plus humanize_check and humanize_rules tools. · DSH 直白文风插件：常驻系统提示词，去掉 GPT 与 DeepSeek 腔调，附扫描与清单查询工具。",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "index.js",
+    "prompt.js",
+    "rules.js",
+    "analyze.js",
+    "cordis.patch.yml",
+    "locale",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "system-prompt",
+    "writing-style",
+    "humanizer",
+    "ai-writing"
+  ],
+  "author": "pseudonymzjt",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pseudonymzjt/dsh-direct-human-style.git"
+  },
+  "homepage": "https://github.com/pseudonymzjt/dsh-direct-human-style#readme",
+  "bugs": {
+    "url": "https://github.com/pseudonymzjt/dsh-direct-human-style/issues"
+  }
+}

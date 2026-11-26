@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "直白文风 Direct Human Style",
+    "description": "常驻系统提示词，去掉 GPT 与 DeepSeek 腔调：铺垫、免责、对仗、客服腔。附 humanize_check 扫描与 humanize_rules 清单。"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Direct Human Style",
+    "description": "Always-on system prompt that strips GPT and DeepSeek filler from every reply: warm-ups, hedging, symmetrical parallelism, service-desk closers. Adds humanize_check and humanize_rules tools."
+  }
+}
