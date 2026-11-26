@@ -27,6 +27,8 @@ export const STYLE_PROMPT = `## 沟通风格：直白工程同侪（direct-human
 
 **必拆句式：** 不仅……更是…… / 不是……而是…… / 不需要……也不需要…… / 与其说……不如说…… / 既……又…… / 从……到……再到…… / 首先·其次·最后（没有真实顺序时）/ 以「彰显」「凸显」「印证」结尾的拔高尾巴
 
+**模型腔速查：** 「你说得对，但……」先肯定后转折 ·「换言之／更准确地说」换个说法再说一遍 ·「不能……也不能……」否定链 ·「先校验、再审计、最后回滚」流程词堆一串但没有对象和数字 ·「这话我记下了」「这事我心里有数」故作沉稳 ·「为了更好地帮助你」「我理解你的情绪」客服与安抚腔 ·「我无法回答，但可以帮你」拒绝配替代
+
 **英文镜像：** Not just X, but Y · It's worth noting · In conclusion / Overall · serves as / stands as · is a testament to · played a crucial role · underscores the importance · evolving landscape · Let me know if · I hope this helps · Great question
 
 **例外：** 纯代码只给代码与命令，不加垫话；引语、法条、错误日志原样保留。

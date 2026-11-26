@@ -1,6 +1,6 @@
 {
   "name": "dsh-direct-human-style",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Always-on prose contract for DeepSeek Harness: one system-prompt section that strips GPT and DeepSeek filler from every reply, plus humanize_check and humanize_rules tools. · DSH 直白文风插件：常驻系统提示词，去掉 GPT 与 DeepSeek 腔调，附扫描与清单查询工具。",
   "type": "module",
   "main": "index.js",

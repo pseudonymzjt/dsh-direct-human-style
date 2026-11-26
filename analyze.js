@@ -66,7 +66,17 @@ const CN_RULES = [
   { id: 'cn-vague-assurance', group: '元话语', sev: 'mid', re: /确保(内容|信息|表述)(符合|满足)|在保留原意的?同时|(提升|改善)(了)?(可读性|准确性|中立性|一致性)|优化(了)?(结构|表达|排版)/g, advice: '说清改了哪一句、哪个事实，不要笼统保证质量' },
 
   // 谄媚式附和
-  { id: 'cn-sycophancy', group: '套话收尾', sev: 'high', re: /你说得(对|没错|很对)|说得(很)?有道理|您的?(观察|理解|判断|思路)(很|非常)?(准确|到位|深刻)|这(是)?(一个)?(很好|不错)的?(观察|角度|切入点)/g, advice: '别先肯定再拐弯，直接说哪部分对、哪部分错' },
+  { id: 'cn-sycophancy', group: '套话收尾', sev: 'high', re: /你说得(对|没错|很对)(?![^。！？\n]{0,15}(但|不过|然而|可是))|说得(很)?有道理|您的?(观察|理解|判断|思路)(很|非常)?(准确|到位|深刻)|这(是)?(一个)?(很好|不错)的?(观察|角度|切入点)/g, advice: '别先肯定再拐弯，直接说哪部分对、哪部分错' },
+
+  // 先肯定后转折、否定链、同义反复、流程堆砌、故作沉稳（2026-11 语料新增）
+  { id: 'cn-affirm-pivot', group: '平行否定', sev: 'high', re: /(你说得(对|没错|有道理|很对)|你的?(观点|说法|理解|判断)(很|非常)?有(价值|道理)|这个(想法|思路|观点)很(好|不错)|我(完全)?同意你的?)[^。！？\n]{0,15}[，,]\s*(但|不过|然而|可是)/g, advice: '不同意的部分直接说，不必先发糖再下刀' },
+  { id: 'cn-neg-chain', group: '伪严谨', sev: 'mid', re: /(不代表|不能|无法|不足以|不应|不宜|不可)[^。！？\n\d]{0,20}(不代表|不能|无法|不足以|不应|不宜|不可)/g, advice: '一条判断就够；带具体数值的规格上下限不算' },
+  { id: 'cn-restate', group: '元话语', sev: 'mid', re: /换言之|换句话说|也就是说|更准确地说|更准确的说|简言之|用更直白的话说/g, advice: '换个说法重复不算新信息，删掉或补一条新证据' },
+  { id: 'cn-purpose-open', group: '元话语', sev: 'mid', re: /为了更好地(帮助|理解|服务|支持)你|为(了)?避免(误解|混淆)|先(明确|澄清|确认)一下(边界|范围|前提)|我(先)?(复述|确认)一下/g, advice: '删掉铺陈直接给内容；不确定就写不确定在哪' },
+  { id: 'cn-therapy', group: '套话收尾', sev: 'mid', re: /我理解你的(情绪|感受|担心|顾虑|处境)|我(能)?(感受到|理解)你的[^。\n]{0,4}(情绪|感受)|建议(你)?保持(理性|冷静|耐心)|按(你自己|自己)?(感到)?舒适的(节奏|方式|步调)|你的(感受|情绪)(很|非常)?(重要|合理)/g, advice: '不必替对方做情绪管理，说清事实就行' },
+  { id: 'cn-refuse-redirect', group: '套话收尾', sev: 'low', re: /我(无法|不能)(提供|回答|帮助)[^。！？\n]{0,15}[，,]\s*(但|不过|可以|你可以)/g, advice: '不能做就说不能做，替代方案另起一句' },
+  { id: 'cn-wuxia-tone', group: '拔高', sev: 'high', re: /这话我(记下|认)(了|着)?|这话(说)?得(不轻|有点重)|这事我?心里有数|这笔账|我守着|你往下讲|这个问题我?先不接|行，这话/g, advice: '别把日常对话演成电影台词，说「知道了」「好」就够' },
+  { id: 'cn-proc-pile', group: '抽象大词', sev: 'mid', re: /(?:[\u4e00-\u9fa5]{2,4}[、，]){4,}/g, advice: '四个以上并列词堆在一起通常没说什么对象；挑真正做的那两三件' },
 
   // 中文冗余
   { id: 'cn-do-verb', group: '中文冗余', sev: 'low', re: /进行(了)?(全面|深入|系统|重点|进一步)?(的)?(测试|调整|优化|分析|评估|检查|改造|升级|处理)/g, advice: '直接用动词：测试、调整、优化' },
@@ -85,6 +95,10 @@ const EN_RULES = [
   { id: 'en-service', group: 'English', sev: 'high', re: /\bi hope this helps\b|\blet me know if\b|\bwould you like me to\b|\bgreat question\b|\bfeel free to\b/gi, advice: 'delete the service-desk line' },
   { id: 'en-vague-attrib', group: 'English', sev: 'high', re: /\bexperts say\b|\bobservers have noted\b|\bstudies (suggest|show)\b|\bindustry reports\b/gi, advice: 'name the source or keep it explicitly vague' },
   { id: 'en-era', group: 'English', sev: 'mid', re: /\bin today'?s\b|\bever-evolving\b|\blet'?s (dive|unpack|explore)\b|\bdive into\b/gi, advice: 'delete the framing, start with the fact' },
+  { id: 'en-affirm-pivot', group: 'English', sev: 'high', re: /\b(you'?re (absolutely |totally )?right|that'?s a (great|good|fair|excellent) (point|question)|fair enough)\b[^.!?\n]{0,25}[,.]?\s*(but|however|that said|yet)\b/gi, advice: 'say the disagreement outright, skip the sugar' },
+  { id: 'en-therapy', group: 'English', sev: 'mid', re: /\bI (understand|hear|appreciate) (your|that|how)\b|\bwhatever you'?re comfortable with\b/gi, advice: 'skip the counselling, state the fact' },
+  { id: 'en-clarify', group: 'English', sev: 'mid', re: /\b(let me (clarify|be clear)|to be clear|to avoid (any )?confusion|just to clarify)\b/gi, advice: 'delete the lead-in, give the content' },
+  { id: 'en-refuse-redirect', group: 'English', sev: 'low', re: /\bI can'?t (help with|answer|provide)\b[^.!?\n]{0,30}[,.]?\s*(but|however)\b/gi, advice: 'refuse plainly; put the alternative in its own sentence' },
 ]
 
 const ALL_RULES = [...CN_RULES, ...EN_RULES]
