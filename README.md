@@ -21,8 +21,8 @@ An always-on prose contract for DeepSeek Harness: one system-prompt section appl
 | part | 内容 |
 | --- | --- |
 | `direct` | 全局直白风格七条原则与替换示例 |
-| `gpt` | GPT 腔调 13 条（英文模型特征与中文对应） |
-| `deepseek` | DeepSeek 腔调 16 条（中文模型特征） |
+| `gpt` | GPT 腔调 16 条（英文模型特征与中文对应） |
+| `deepseek` | DeepSeek 腔调 20 条（中文模型特征） |
 | `checkpoints` | A–F 31 个检查点，改别人稿子时用 |
 | `all` | 四份拼接 |
 
