@@ -127,7 +127,12 @@ function count(text, re) {
 /** Statistical tells that no word list catches. */
 function stats(text) {
   const chars = text.length
-  const paragraphs = text.split(/\n[ \t]*\n/).map(p => p.trim()).filter(Boolean)
+  let paragraphs = text.split(/\n[ \t]*\n/).map(p => p.trim()).filter(Boolean)
+  // 从 Notion / 网页抽出来的文本常常只有单换行，没有空行分段。
+  if (paragraphs.length < 3) {
+    const lineParas = text.split('\n').map(p => p.trim()).filter(Boolean)
+    if (lineParas.length >= 5) paragraphs = lineParas
+  }
   const sentences = text.split(/[。！？!?；;]+|\n{2,}/).map(s => s.trim()).filter(s => s.length > 1)
   const emDash = count(text, /——/g) + count(text, /—(?!—)/g) + count(text, /(^|[^-])--(?=[^-])/g)
   const boldMatches = [...text.matchAll(/\*\*([^*\n]+)\*\*/g)].map(m => m[1])
@@ -163,24 +168,102 @@ function stats(text) {
     tableRows,
     parenthetical,
     paragraphUniformity: uniformity === null ? null : Math.round(uniformity * 100) / 100,
+    markdownFree: boldMatches.length === 0 && bulletLines === 0 && tableRows === 0,
   }
 }
 
-/** Structural checks that need more than one pattern. */
-function structuralNotes(text, s) {
+/**
+ * Structural checks: the shape of the text, which word-level regexes cannot see.
+ * Every note carries a fixed weight, so the verdict does not decay with length —
+ * a 20,000-character document with a rigid skeleton is not "cleaner" than a
+ * 500-character one with the same tells.
+ */
+function structural(text, s) {
   const notes = []
-  if (s.emDashPer1000 >= 2) notes.push(`破折号密度偏高：${s.emDash} 处 / ${s.chars} 字，当作逗号用了。`)
-  if (s.boldRatio > 5) notes.push(`加粗占比 ${s.boldRatio}%，超过 5% 的上限。`)
-  if (s.bulletRatio > 60 && s.chars > 400) notes.push(`列表行占比 ${s.bulletRatio}%，正文被拆成了要点提纲。`)
-  if (s.paragraphUniformity !== null && s.paragraphUniformity < 0.15) notes.push(`段落长度高度均匀（变异系数 ${s.paragraphUniformity}），读起来像模板。`)
-  if (s.emojiHeadings > 0) notes.push(`${s.emojiHeadings} 个标题带 emoji 装饰。`)
-  if (s.tableRows >= 4 && s.chars < 600) notes.push('短文本配了表格，两个选项也做成了多列表格。')
-  if (s.parenthetical >= 3) notes.push(`${s.parenthetical} 处「（也就是……）」式括号解释。`)
+  const caveats = []
+  let points = 0
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  const lineCount = lines.length || 1
+
+  // 序数骨架：结论一/结论二/结论三……同一标签连续编号
+  const ordinalRe = /(结论|优化|架构|局限|路径|路线|方案|策略|原因|要点|阶段|做法|假设|边界|层次|方向|风险|收益|成本|步骤|环节)[一二三四五六七八九十]/g
+  const byLabel = new Map()
+  for (const m of text.matchAll(ordinalRe)) byLabel.set(m[1], (byLabel.get(m[1]) ?? 0) + 1)
+  const runs = [...byLabel.entries()].filter(([, n]) => n >= 3)
+  if (runs.length) {
+    const total = runs.reduce((sum, [, n]) => sum + n, 0)
+    const shape = runs
+      .map(([label, n]) => `${label}一~${label}${'一二三四五六七八九十'[Math.min(n, 10) - 1]} ${n} 条`)
+      .join('、')
+    points += runs.length >= 2 ? 4 : 3
+    notes.push(`序数骨架 ${runs.length} 组共 ${total} 条：${shape}。整节按编号平铺，读者看不出轻重，改成按重要性排或直接写散文。`)
+  }
+
+  // 标签冒号开头：每条都以「短语：」起头
+  const labelOpeners = lines.filter(l => /^[^。！？，、：\n]{2,12}：/.test(l)).length
+  const labelRatio = Math.round((labelOpeners / lineCount) * 100)
+  if (labelOpeners >= 8 && labelRatio >= 8) {
+    points += labelRatio >= 20 ? 4 : 3
+    notes.push(`「标签：内容」开头 ${labelOpeners} 条，占全部段落的 ${labelRatio}%。条目全做成表单字段，是把散文写成了配置项。`)
+  }
+
+  // 短句先行再展开：每条都是「一句话结论。补充说明」的同一节奏
+  const leadThenBody = lines.filter(l => /^[^\n]{6,40}。\s*\S/.test(l)).length
+  if (leadThenBody >= 6) {
+    points += leadThenBody >= 12 ? 2 : 1
+    notes.push(`短句先行再展开 ${leadThenBody} 处，每条都是同一节奏，读下去像模板填空。`)
+  }
+
+  // 对称否定总量，正序「不是…是…」与反序「…，不是…」都算
+  const notXButY = (text.match(/不是[^。！？\n]{2,25}[，,]\s*(而是|是)[^。！？\n]{2,25}/g) ?? []).length
+  const yNotX = (text.match(/[^。！？\n]{2,25}[，,]\s*不是[^。！？\n]{2,25}[。！？]/g) ?? []).length
+  const negTotal = notXButY + yNotX
+  if (negTotal >= 10) {
+    points += negTotal >= 18 ? 3 : 2
+    notes.push(`对称否定 ${negTotal} 处（「不是…是…」${notXButY}，「…，不是…」${yNotX}）。对比立得住就直说结论，不必每段先摆一个错的再纠正。`)
+  }
+
+  if (s.emDashPer1000 >= 2) {
+    points += 1
+    notes.push(`破折号密度偏高：${s.emDash} 处 / ${s.chars} 字，当作逗号用了。`)
+  }
+  if (s.boldRatio > 5) {
+    points += 1
+    notes.push(`加粗占比 ${s.boldRatio}%，超过 5% 的上限。`)
+  }
+  if (s.bulletRatio > 60 && s.chars > 400) {
+    points += 1
+    notes.push(`列表行占比 ${s.bulletRatio}%，正文被拆成了要点提纲。`)
+  }
+  if (s.paragraphUniformity !== null && s.paragraphUniformity < 0.15) {
+    points += 1
+    notes.push(`段落长度高度均匀（变异系数 ${s.paragraphUniformity}），读起来像模板。`)
+  }
+  if (s.emojiHeadings > 0) {
+    points += 1
+    notes.push(`${s.emojiHeadings} 个标题带 emoji 装饰。`)
+  }
+  if (s.tableRows >= 4 && s.chars < 600) {
+    points += 1
+    notes.push('短文本配了表格，两个选项也做成了多列表格。')
+  }
+  if (s.parenthetical >= 3) {
+    points += 1
+    notes.push(`${s.parenthetical} 处「（也就是……）」式括号解释。`)
+  }
 
   const threeStep = /首先[^。\n]{0,40}/.test(text) && /其次[^。\n]{0,40}/.test(text) && /(最后|再次)[^。\n]{0,40}/.test(text)
-  if (threeStep) notes.push('出现「首先/其次/最后」骨架，没有真实顺序就拆掉。')
+  if (threeStep) {
+    points += 1
+    notes.push('出现「首先/其次/最后」骨架，没有真实顺序就拆掉。')
+  }
 
-  return notes
+  if (s.markdownFree && s.chars > 1200) {
+    caveats.push('文本里没有任何 Markdown 标记（加粗、列表、表格），若原文来自 Notion、网页或富文本编辑器，这几项格式指标不可信——扫描到的只有文字层，加粗块、列表项、表格结构在抽取时已经丢了。')
+  }
+
+  return { notes, caveats, points }
 }
 
 /**
@@ -205,7 +288,7 @@ export function analyze(text, options = {}) {
     if (lang === 'en' && rule.group !== 'English') continue
     let seen = 0
     for (const m of source.matchAll(rule.re)) {
-      if (seen >= 5) break
+      if (seen >= 20) break
       const { line, col } = lineCol(source, m.index ?? 0)
       hits.push({
         group: rule.group,
@@ -229,10 +312,12 @@ export function analyze(text, options = {}) {
     score += SEVERITY[hit.severity]
   }
 
-  const density = s.chars >= 300 ? score / (s.chars / 300) : score
-  const verdict = density >= 9 ? 'heavily templated' : density >= 4 ? 'some templating' : density > 0 ? 'mostly clean' : 'clean'
-
-  const notes = structuralNotes(source, s)
+  // 词级密度按长度稀释；结构分是绝对计数，不随长度衰减。
+  // 判决取两者较重的一个：2 万字文档骨架僵硬，不该因为字多被判 clean。
+  const wordDensity = s.chars >= 300 ? score / (s.chars / 300) : score
+  const { notes, caveats, points } = structural(source, s)
+  const severity = Math.max(wordDensity, points)
+  const verdict = severity >= 9 ? 'heavily templated' : severity >= 4 ? 'some templating' : severity > 0 ? 'mostly clean' : 'clean'
 
   return {
     ok: true,
@@ -240,11 +325,14 @@ export function analyze(text, options = {}) {
     chars: s.chars,
     stats: s,
     verdict,
-    score: Math.round(density * 10) / 10,
+    score: Math.round(severity * 10) / 10,
+    wordDensity: Math.round(wordDensity * 10) / 10,
+    structurePoints: points,
     hitCount: hits.length,
     groups,
     hits: hits.slice(0, limit),
     truncated: hits.length > limit,
     notes,
+    caveats,
   }
 }

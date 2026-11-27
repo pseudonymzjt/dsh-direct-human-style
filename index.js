@@ -99,13 +99,18 @@ function renderScan(_args, value) {
 
   const s = value.stats
   const lines = [
-    `判定：${value.verdict}（密度 ${value.score}）· ${value.chars} 字 · ${s.sentences} 句 · 平均句长 ${s.avgSentenceChars} 字`,
+    `判定：${value.verdict}（词级密度 ${value.wordDensity ?? value.score} · 结构分 ${value.structurePoints ?? 0}）· ${value.chars} 字 · ${s.sentences} 句 · 平均句长 ${s.avgSentenceChars} 字`,
     `命中 ${value.hitCount} 处${value.truncated ? '（已截断）' : ''}：${Object.entries(value.groups).map(([g, n]) => `${g} ${n}`).join(' · ') || '无'}`,
   ]
 
   if (value.notes.length > 0) {
     lines.push('', '结构问题：')
     for (const note of value.notes) lines.push(`- ${note}`)
+  }
+
+  if (value.caveats?.length > 0) {
+    lines.push('', '指标不可信：')
+    for (const caveat of value.caveats) lines.push(`- ${caveat}`)
   }
 
   if (value.hits.length > 0) {
