@@ -1,0 +1,20 @@
+{
+  "name": "direct-human-style",
+  "version": "0.1.5",
+  "description": "常驻直白文风约束，并提供中文与英文稿件的按需审阅工具。",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "直白文风",
+    "shortDescription": "每轮采用直白、具体的表达",
+    "longDescription": "在每次 Codex 会话开始时载入直白文风约束，并按需审阅中文或英文稿件。",
+    "developerName": "pseudonymzjt",
+    "category": "Productivity",
+    "capabilities": ["Read"],
+    "brandColor": "#34495E",
+    "logo": "./icon.svg",
+    "defaultPrompt": [
+      "按直白文风检查这段文本，指出值得改的地方。",
+      "用简洁、具体的语言回答，保留必要的条件和细节。"
+    ]
+  }
+}

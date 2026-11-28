@@ -1,0 +1,23 @@
+{
+  "name": "direct-human-style",
+  "interface": {
+    "displayName": "直白文风插件"
+  },
+  "plugins": [
+    {
+      "name": "direct-human-style",
+      "source": {
+        "source": "local",
+        "path": "./codex-plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "interface": {
+        "displayName": "直白文风"
+      }
+    }
+  ]
+}

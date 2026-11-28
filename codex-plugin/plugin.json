@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "direct-human-style",
+  "version": "0.1.5",
+  "description": "常驻直白文风约束，并提供中文与英文稿件的按需审阅工具。",
+  "author": { "name": "pseudonymzjt" },
+  "homepage": "https://github.com/flowingchar/dsh-direct-human-style",
+  "repository": "https://github.com/flowingchar/dsh-direct-human-style",
+  "license": "MIT",
+  "keywords": ["writing-style", "humanize", "codex"],
+  "skills": "./skills/"
+}

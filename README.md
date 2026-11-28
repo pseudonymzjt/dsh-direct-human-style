@@ -40,6 +40,27 @@ dsh plugin --profile desktop add "link:D:\path\to\dsh-direct-human-style"
 
 装完重载 profile。插件列表里显示「直白文风 Direct Human Style」。
 
+### Codex 本地插件
+
+公开插件目录不允许包含 lifecycle hooks，所以目录里的一键安装无法复现每轮常驻约束；它最多提供按需使用的写作 skill。GitHub 本地 marketplace 可以分发完整的 Codex 功能，包括审稿 skill、扫描命令和用户级 SessionStart hook。Marketplace 文件位于 `.claude-plugin/marketplace.json`，插件本体位于 `codex-plugin/`。
+
+```bash
+codex plugin marketplace add https://github.com/flowingchar/dsh-direct-human-style.git
+codex plugin add direct-human-style --marketplace direct-human-style
+node ~/.codex/plugins/cache/direct-human-style/direct-human-style/0.1.5/scripts/install-hook.mjs
+```
+
+之后在 **Settings → Hooks** 审阅并信任 hook。Codex 桌面版和 CLI 可运行这套本地常驻约束；ChatGPT 的公开目录安装不执行本地 SessionStart hook，只能按需使用写作 skill。
+
+`humanize-writing` skill 提供按需审稿流程；稿件扫描与规则查询命令也包含在插件里。若从仓库 checkout 后本地安装，可把上面脚本路径替换为 `node codex-plugin/scripts/install-hook.mjs`。
+
+审稿扫描示例：
+
+```bash
+cat draft.md | node codex-plugin/scripts/check.mjs --lang=zh
+node codex-plugin/scripts/rules.mjs checkpoints
+```
+
 ## 配置
 
 `cordis.patch.yml` 里可传：
@@ -55,9 +76,10 @@ dsh plugin --profile desktop add "link:D:\path\to\dsh-direct-human-style"
 
 ```
 index.js          插件入口：注册提示词段与两个工具
-prompt.js         常驻提示词文本
-rules.js          四份清单全文（硬编码，不读 markdown）
-analyze.js        扫描器：正则规则 + 统计指标
+prompt.js         DSH 常驻提示词文本
+rules.js          DSH 四份清单全文（硬编码，不读 markdown）
+analyze.js        DSH 扫描器：正则规则 + 统计指标
+codex-plugin/     独立 Codex 插件包（提示词、规则、hook、skill、命令）
 locale/{en,zh}.json  插件列表里的标题与描述
 icon.svg          图标
 cordis.patch.yml  bundle patch
@@ -82,7 +104,7 @@ node selftest.mjs
 
 零依赖。刻意不 import `@deepseek-ai/dsh-tools`：以 link 方式安装的 bundle 没有自己的 `node_modules`，裸导入宿主包会抛 `ERR_MODULE_NOT_FOUND`，而且失败是静默的——工具不注册、插件不报错。`index.js` 里的 `makeTool` 自己做了参数校验，覆盖 `required` / `string` / `integer` / `array` / `enum`。
 
-`rules.js` 是硬编码文本，与上游 markdown 分开维护。改了清单要同步到 `rules.js`，`selftest.mjs` 打印的四份字符数用来发现漏同步。
+DSH 插件继续从根目录的 `prompt.js`、`rules.js` 和 `analyze.js` 加载原有实现。Codex 插件在 `codex-plugin/` 内维护独立副本，互不覆盖入口和打包配置。
 
 ## 许可
 
